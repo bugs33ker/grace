@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"sync"
 	"syscall"
 
@@ -22,6 +23,7 @@ var (
 	logger     *log.Logger
 	didInherit = os.Getenv("LISTEN_FDS") != ""
 	ppid       = os.Getppid()
+	pidFile    *os.File
 )
 
 type option func(*app)
@@ -139,10 +141,22 @@ func (a *app) run() error {
 			} else {
 				const msg = "Graceful handoff of %s with new pid %d and old pid %d"
 				logger.Printf(msg, pprintAddr(a.listeners), os.Getpid(), ppid)
+				if pidFile != nil {
+					_, err := pidFile.WriteString(strconv.Itoa(os.Getpid()))
+					if err != nil {
+						logger.Fatal(err)
+					}
+				}
 			}
 		} else {
 			const msg = "Serving %s with pid %d"
 			logger.Printf(msg, pprintAddr(a.listeners), os.Getpid())
+			if pidFile != nil {
+				_, err := pidFile.WriteString(strconv.Itoa(os.Getpid()))
+				if err != nil {
+					logger.Fatal(err)
+				}
+			}
 		}
 	}
 
@@ -217,4 +231,9 @@ func pprintAddr(listeners []net.Listener) []byte {
 // SetLogger sets logger to be able to grab some useful logs
 func SetLogger(l *log.Logger) {
 	logger = l
+}
+
+// Sets a pid file
+func SetPidFile(f *os.File) {
+	pidFile = f
 }

@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"crypto/tls"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"os"
@@ -14,6 +13,7 @@ import (
 	"sync"
 	"syscall"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/facebookgo/grace/gracenet"
 	"github.com/facebookgo/httpdown"
 )
